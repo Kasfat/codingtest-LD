@@ -1,66 +1,349 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel API Documentation,
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A RESTful API for user registration, login, authentication, and URL shortening built with Laravel and Sanctum.
 
-## About Laravel
+## Base URL
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```
+http://localhost:8000
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Authentication
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This API uses Laravel Sanctum for token-based authentication. Include the bearer token in the `Authorization` header for protected endpoints:
 
-## Learning Laravel
+```
+Authorization: Bearer {your-token}
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## API Endpoints
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1. Register User
 
-## Laravel Sponsors
+Register a new user account.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**Endpoint:** `POST /api/register`
 
-### Premium Partners
+**Authentication:** Not required
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+**Request Body:**
 
-## Contributing
+| Field    | Type   | Required | Description                           |
+| -------- | ------ | -------- | ------------------------------------- |
+| name     | string | Yes      | User's full name                      |
+| email    | string | Yes      | User's email address (must be unique) |
+| password | string | Yes      | Password (minimum 8 characters)       |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**Example Request:**
 
-## Code of Conduct
+```bash
+curl -X POST http://localhost:8000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test",
+    "email": "test@gmail.com",
+    "password": "password123"
+  }'
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Success Response (201):**
 
-## Security Vulnerabilities
+```json
+{
+    "status": "success",
+    "message": "User registered successfully",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Test",
+            "email": "test@gmail.com"
+        },
+        "token": "1|aBcDeFgHiJkLmNoPqRsTuVwXyZ123456789"
+    }
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Error Response (422):**
 
-## License
+```json
+{
+    "status": "error",
+    "message": "Validation failed",
+    "errors": {
+        "email": ["The email has already been taken."],
+        "password": ["The password must be at least 8 characters."]
+    }
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+### 2. Login User
+
+Authenticate a user and receive an API token.
+
+**Endpoint:** `POST /api/login`
+
+**Authentication:** Not required
+
+**Request Body:**
+
+| Field    | Type   | Required | Description          |
+| -------- | ------ | -------- | -------------------- |
+| email    | string | Yes      | User's email address |
+| password | string | Yes      | User's password      |
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@gmail.com",
+    "password": "password123"
+  }'
+```
+
+**Success Response (200):**
+
+```json
+{
+    "status": "success",
+    "message": "Login successful",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Test",
+            "email": "test@gmail.com"
+        },
+        "token": "2|ZnVjS2V5QXlCbERlRmdISGpKTE1OT3BQclJT"
+    }
+}
+```
+
+**Error Response (401):**
+
+```json
+{
+    "status": "error",
+    "message": "Invalid credentials"
+}
+```
+
+---
+
+### 3. Logout User
+
+Revoke the current API token.
+
+**Endpoint:** `POST /api/logout`
+
+**Authentication:** Required
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:8000/api/logout \
+  -H "Authorization: Bearer {your-token}"
+```
+
+**Success Response (200):**
+
+```json
+{
+    "status": "success",
+    "message": "Logged out successfully"
+}
+```
+
+**Error Response (401):**
+
+```json
+{
+    "message": "Unauthenticated."
+}
+```
+
+---
+
+### 4. Shorten URL
+
+Create a shortened URL for the given original URL.
+
+**Endpoint:** `POST /api/shorten`
+
+**Authentication:** Required
+
+**Request Body:**
+
+| Field | Type   | Required | Description                                       |
+| ----- | ------ | -------- | ------------------------------------------------- |
+| url   | string | Yes      | The original URL to shorten (max 2048 characters) |
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:8000/api/shorten \
+  -H "Authorization: Bearer {your-token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/very/long/url/that/needs/to/be/shortened"
+  }'
+```
+
+**Success Response (201):**
+
+```json
+{
+    "status": "success",
+    "message": "URL shortened successfully",
+    "data": {
+        "original_url": "https://example.com/very/long/url/that/needs/to/be/shortened",
+        "short_code": "aBc123",
+        "short_url": "http://localhost:8000/aBc123"
+    }
+}
+```
+
+**Duplicate URL Response (200):**
+
+```json
+{
+    "status": "success",
+    "message": "URL already shortened",
+    "data": {
+        "original_url": "https://example.com/very/long/url/that/needs/to/be/shortened",
+        "short_code": "aBc123",
+        "short_url": "http://localhost:8000/aBc123"
+    }
+}
+```
+
+**Error Response (422):**
+
+```json
+{
+    "status": "error",
+    "message": "Validation failed",
+    "errors": {
+        "url": ["The url field is required.", "The url format is invalid."]
+    }
+}
+```
+
+**Error Response (401):**
+
+```json
+{
+    "message": "Unauthenticated."
+}
+```
+
+---
+
+### 5. Get User URLs
+
+Retrieve all shortened URLs created by the authenticated user.
+
+**Endpoint:** `GET /api/urls`
+
+**Authentication:** Required
+
+**Example Request:**
+
+```bash
+curl -X GET http://localhost:8000/api/urls \
+  -H "Authorization: Bearer {your-token}"
+```
+
+**Success Response (200):**
+
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "original_url": "https://example.com/very/long/url",
+            "short_code": "aBc123",
+            "short_url": "http://localhost:8000/aBc123",
+            "created_at": "2025-01-15T10:30:00.000000Z"
+        },
+        {
+            "id": 2,
+            "original_url": "https://google.com",
+            "short_code": "XyZ789",
+            "short_url": "http://localhost:8000/XyZ789",
+            "created_at": "2025-01-15T11:45:00.000000Z"
+        }
+    ]
+}
+```
+
+**Error Response (401):**
+
+```json
+{
+    "message": "Unauthenticated."
+}
+```
+
+---
+
+### 6. Redirect to Original URL
+
+Redirect from the short code to the original URL.
+
+**Endpoint:** `GET /{shortCode}`
+
+**Authentication:** Not required
+
+**URL Parameter:**
+
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
+| shortCode | string | The 6-character short code |
+
+**Example Request:**
+
+```bash
+curl -X GET http://localhost:8000/aBc123
+```
+
+**Success Response (302 Redirect):**
+
+Redirects to the original URL stored in the database.
+
+---
+
+## HTTP Status Codes
+
+| Code | Description                             |
+| ---- | --------------------------------------- |
+| 200  | Success                                 |
+| 201  | Created                                 |
+| 302  | Redirect                                |
+| 401  | Unauthorized (invalid or missing token) |
+| 404  | Not Found                               |
+| 422  | Validation Error                        |
+| 500  | Server Error                            |
+
+---
+
+## Error Handling
+
+All error responses follow this format:
+
+```json
+{
+    "status": "error",
+    "message": "Error description",
+    "errors": {
+        "field_name": ["Error message 1", "Error message 2"]
+    }
+}
+```
+
+The API will be available at `http://localhost:8000`.
